@@ -49,7 +49,7 @@ func main() {
 
 	// ask user for input
 	reader := bufio.NewReader(os.Stdin)
-	for !w.HasWon() {
+	for !w.Won() {
 		fmt.Print("Enter a guess: ")
 		text, _ := reader.ReadString('\n')
 		text = text[:len(text)-1]

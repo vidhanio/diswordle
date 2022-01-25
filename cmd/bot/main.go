@@ -58,7 +58,13 @@ func main() {
 	log.Debug().Msg("Done reading word lists.")
 
 	log.Debug().Msg("Starting bot...")
-	bot, err := bot.New(commonWords, validWords, 100000, os.Getenv("DISCORD_BOT_TOKEN"))
+	bot, err := bot.New(
+		commonWords,
+		validWords,
+		6,
+		os.Getenv("DISCORD_BOT_TOKEN"),
+		[3]string{os.Getenv("CORRECT_EMOTE_GUILD"), os.Getenv("WRONG_POSITION_EMOTE_GUILD"), os.Getenv("WRONG_EMOTE_GUILD")},
+	)
 	if err != nil {
 		log.Fatal().Err(err).Msg("Failed to start bot")
 	}

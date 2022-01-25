@@ -14,9 +14,12 @@ type WordleBot struct {
 	commonWords    []string
 	validWords     []string
 	guessesAllowed int
+
+	emojiGuilds [3]string
+	emojiMap    [3][26]*discordgo.Emoji
 }
 
-func New(commonWords, validWords []string, guessesAllowed int, botToken string) (*WordleBot, error) {
+func New(commonWords, validWords []string, guessesAllowed int, botToken string, emojiGuilds [3]string) (*WordleBot, error) {
 	session, err := discordgo.New("Bot " + botToken)
 	if err != nil {
 		return nil, err
@@ -28,9 +31,11 @@ func New(commonWords, validWords []string, guessesAllowed int, botToken string) 
 		commonWords:    commonWords,
 		validWords:     validWords,
 		guessesAllowed: guessesAllowed,
+		emojiGuilds:    emojiGuilds,
 	}
 
-	wb.session.AddHandler(wb.Wordle)
+	wb.session.AddHandler(wb.HandleWordle)
+	wb.session.AddHandler(wb.ReadyHandler)
 
 	return wb, nil
 }
@@ -54,7 +59,7 @@ func (wb *WordleBot) Stop() error {
 	return wb.session.Close()
 }
 
-func (wb *WordleBot) newWordle(guildID, userID string, wordLength int) (*wordleGame, error) {
+func (wb *WordleBot) newWordleGame(guildID, userID string, wordLength int) (*wordleGame, error) {
 	w, err := wordle.New(wordLength, wb.guessesAllowed, wb.commonWords, wb.validWords)
 	if err != nil {
 		return nil, err
@@ -65,10 +70,11 @@ func (wb *WordleBot) newWordle(guildID, userID string, wordLength int) (*wordleG
 	}
 
 	wb.wordles[guildID][userID] = &wordleGame{
-		Wordle:  w,
-		session: wb.session,
-		guildID: guildID,
-		userID:  userID,
+		Wordle:   w,
+		session:  wb.session,
+		guildID:  guildID,
+		userID:   userID,
+		emojiMap: wb.emojiMap,
 	}
 
 	return wb.wordles[guildID][userID], nil

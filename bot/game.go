@@ -14,23 +14,37 @@ type wordleGame struct {
 
 	guildID string
 	userID  string
+
+	emojiMap [3][26]*discordgo.Emoji
 }
 
 func (wm wordleGame) String() string {
 	builder := new(strings.Builder)
 
-	for _, guess := range wm.CharGuesses() {
-		for _, char := range guess {
+	for i, guessType := range wm.GuessTypes() {
+		guess := wm.Guesses()[i]
+		for j, char := range guessType {
 			switch char {
-			case wordle.CharCorrect:
-				builder.WriteRune('🟩')
-			case wordle.CharWrongPlace:
-				builder.WriteRune('🟨')
-			case wordle.CharWrong:
-				builder.WriteRune('🟥')
+			case wordle.GuessTypeCorrect:
+				builder.WriteString(wm.emojiMap[0][guess[j]-'a'].MessageFormat())
+			case wordle.GuessTypeWrongPosition:
+				builder.WriteString(wm.emojiMap[1][guess[j]-'a'].MessageFormat())
+			case wordle.GuessTypeWrong:
+				builder.WriteString(wm.emojiMap[2][guess[j]-'a'].MessageFormat())
 			}
 		}
 		builder.WriteRune('\n')
+	}
+
+	i := 0
+	for i < wm.GuessesLeft() {
+		j := 0
+		for j < wm.WordLength() {
+			builder.WriteString(":black_large_square:")
+			j++
+		}
+		builder.WriteRune('\n')
+		i++
 	}
 
 	return builder.String()
@@ -42,7 +56,7 @@ func (wm wordleGame) Embed() *discordgo.MessageEmbed {
 		return errorEmbed(err)
 	}
 
-	return &discordgo.MessageEmbed{
+	embed := &discordgo.MessageEmbed{
 		Author: &discordgo.MessageEmbedAuthor{
 			IconURL: user.AvatarURL(""),
 			Name:    user.Username,
@@ -54,4 +68,11 @@ func (wm wordleGame) Embed() *discordgo.MessageEmbed {
 			Text:    fmt.Sprintf("Guesses left: %d | Made with ❤️ & Go by Vidhan", wm.GuessesLeft()),
 		},
 	}
+
+	if wm.Won() {
+		embed.Title = "Wordle - You won!"
+		embed.Color = 0x57F287
+	}
+
+	return embed
 }

@@ -7,7 +7,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-var WordleApplicationCommands = []*discordgo.ApplicationCommand{
+var wordleApplicationCommands = []*discordgo.ApplicationCommand{
 	{
 		Name:        "start",
 		Description: "Start a new wordle",
@@ -40,21 +40,33 @@ var WordleApplicationCommands = []*discordgo.ApplicationCommand{
 	},
 }
 
-func (wb *WordleBot) HandleWordle(s *discordgo.Session, i *discordgo.InteractionCreate) {
+func (wb *WordleBot) handleWordle(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	c := i.ApplicationCommandData()
 	switch c.Name {
 	case "start":
-		wb.WordleStart(s, i)
+		wb.handleWordleStart(s, i)
 	case "guess":
-		wb.WordleGuess(s, i)
+		wb.handleWordleGuess(s, i)
 	case "stop":
-		wb.WordleStop(s, i)
+		wb.handleWordleStop(s, i)
 	}
 }
 
-func (wb *WordleBot) WordleStart(s *discordgo.Session, i *discordgo.InteractionCreate) {
+func (wb *WordleBot) handleWordleStart(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	_, ok := wb.wordles[i.GuildID][i.Member.User.ID]
+	if ok {
+		err := errorRespond(s, i, errors.New("A wordle is already in progress. Use `/stop` to stop it."))
+		if err != nil {
+			log.Error().
+				Err(err).
+				Msg("Failed to respond to interaction")
+		}
+
+		return
+	}
+
 	wordLength := 5
-	if len(i.ApplicationCommandData().Options) > 1 {
+	if len(i.ApplicationCommandData().Options) > 0 {
 		wordLength = int(i.ApplicationCommandData().Options[0].IntValue())
 	}
 
@@ -70,7 +82,7 @@ func (wb *WordleBot) WordleStart(s *discordgo.Session, i *discordgo.InteractionC
 		return
 	}
 
-	err = respond(s, i, embedResponse(wg.Embed()))
+	err = respond(s, i, embedResponse(wg.embed()))
 	if err != nil {
 		err := errorRespond(s, i, err)
 		if err != nil {
@@ -83,7 +95,7 @@ func (wb *WordleBot) WordleStart(s *discordgo.Session, i *discordgo.InteractionC
 	}
 }
 
-func (wb *WordleBot) WordleGuess(s *discordgo.Session, i *discordgo.InteractionCreate) {
+func (wb *WordleBot) handleWordleGuess(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	wg, ok := wb.wordles[i.GuildID][i.Member.User.ID]
 	if !ok {
 		err := errorRespond(s, i, errors.New("No wordle in progress. Use `/start` to start a new game."))
@@ -109,7 +121,7 @@ func (wb *WordleBot) WordleGuess(s *discordgo.Session, i *discordgo.InteractionC
 		return
 	}
 
-	err = respond(s, i, embedResponse(wg.Embed()))
+	err = respond(s, i, embedResponse(wg.embed()))
 	if err != nil {
 		err := errorRespond(s, i, err)
 		if err != nil {
@@ -126,7 +138,7 @@ func (wb *WordleBot) WordleGuess(s *discordgo.Session, i *discordgo.InteractionC
 	}
 }
 
-func (wb *WordleBot) WordleStop(s *discordgo.Session, i *discordgo.InteractionCreate) {
+func (wb *WordleBot) handleWordleStop(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	_, ok := wb.wordles[i.GuildID][i.Member.User.ID]
 	if !ok {
 		err := errorRespond(s, i, errors.New("No wordle in progress. Use `/start` to start a new game."))

@@ -15,7 +15,30 @@ type wordleGame struct {
 	guildID string
 	userID  string
 
-	emojiMap [3][26]*discordgo.Emoji
+	emojiMap   [3][26]*discordgo.Emoji
+	emptyEmoji *discordgo.Emoji
+}
+
+func (wb *WordleBot) newWordleGame(guildID, userID string, wordLength int) (*wordleGame, error) {
+	w, err := wordle.New(wordLength, wb.guessesAllowed, wb.commonWords, wb.validWords)
+	if err != nil {
+		return nil, err
+	}
+
+	if wb.wordles[guildID] == nil {
+		wb.wordles[guildID] = make(map[string]*wordleGame)
+	}
+
+	wb.wordles[guildID][userID] = &wordleGame{
+		Wordle:     w,
+		session:    wb.session,
+		guildID:    guildID,
+		userID:     userID,
+		emojiMap:   wb.emojiMap,
+		emptyEmoji: wb.emptyEmoji,
+	}
+
+	return wb.wordles[guildID][userID], nil
 }
 
 func (wm wordleGame) String() string {
@@ -40,7 +63,7 @@ func (wm wordleGame) String() string {
 	for i < wm.GuessesLeft() {
 		j := 0
 		for j < wm.WordLength() {
-			builder.WriteString(":black_large_square:")
+			builder.WriteString(wm.emptyEmoji.MessageFormat())
 			j++
 		}
 		builder.WriteRune('\n')
@@ -50,7 +73,7 @@ func (wm wordleGame) String() string {
 	return builder.String()
 }
 
-func (wm wordleGame) Embed() *discordgo.MessageEmbed {
+func (wm wordleGame) embed() *discordgo.MessageEmbed {
 	user, err := wm.session.User(wm.userID)
 	if err != nil {
 		return errorEmbed(err)

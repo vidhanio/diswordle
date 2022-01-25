@@ -21,9 +21,10 @@ type Wordle struct {
 	commonWords map[string]void // Common words to use as correct words
 	validWords  map[string]void // All valid words
 
-	guessesAllowed int      // Number of guesses allowed
-	wordLength     int      // Length of word
-	guesses        [][]rune // Guesses
+	guessesAllowed int           // Number of guesses allowed
+	wordLength     int           // Length of word
+	guesses        [][]rune      // Guesses
+	charGuesses    [][]CharGuess // Character guesses
 }
 
 func New(wordLength, guessesAllowed int, commonWords, validWords []string) (*Wordle, error) {
@@ -52,7 +53,7 @@ func New(wordLength, guessesAllowed int, commonWords, validWords []string) (*Wor
 		validWords:     make(map[string]void, len(validWords)),
 		guessesAllowed: guessesAllowed,
 		wordLength:     wordLength,
-		guesses:        make([][]rune, 1),
+		guesses:        make([][]rune, 0),
 	}
 
 	// Convert valid words to runes
@@ -96,10 +97,33 @@ func (w *Wordle) Guess(guess string) ([]CharGuess, error) {
 	}
 
 	w.guesses = append(w.guesses, guessRunes)
+	w.charGuesses = append(w.charGuesses, charGuesses)
 
 	return charGuesses, nil
 }
 
 func (w *Wordle) HasWon() bool {
+	if len(w.guesses) == 0 {
+		return false
+	}
+
 	return equal(w.guesses[len(w.guesses)-1], w.word)
+}
+
+func (w *Wordle) Guesses() []string {
+	guesses := make([]string, len(w.guesses))
+
+	for i, g := range w.guesses {
+		guesses[i] = string(g)
+	}
+
+	return guesses
+}
+
+func (w *Wordle) CharGuesses() [][]CharGuess {
+	return w.charGuesses
+}
+
+func (w *Wordle) GuessesLeft() int {
+	return w.guessesAllowed - len(w.guesses)
 }

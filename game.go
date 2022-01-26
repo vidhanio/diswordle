@@ -1,4 +1,4 @@
-package bot
+package discordle
 
 import (
 	"fmt"
@@ -80,7 +80,7 @@ func (wg *wordleGame) embed() *discordgo.MessageEmbed {
 
 	if wg.Won() {
 		embed.Title = "Wordle - Won"
-		embed.Color = 0x57F287
+		embed.Color = wordleGreen
 	} else if wg.Cancelled() || wg.Lost() {
 		if wg.Cancelled() {
 			embed.Title = "Wordle - Cancelled"
@@ -88,7 +88,7 @@ func (wg *wordleGame) embed() *discordgo.MessageEmbed {
 			embed.Title = "Wordle - Lost"
 		}
 
-		embed.Color = 0xED4245
+		embed.Color = wordleRed
 
 		builder := strings.Builder{}
 

@@ -9,7 +9,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
-	"github.com/vidhanio/wordle/bot"
+	"github.com/vidhanio/discordle"
 )
 
 func main() {
@@ -58,7 +58,7 @@ func main() {
 	log.Debug().Msg("Done reading word lists.")
 
 	log.Debug().Msg("Starting bot...")
-	bot, err := bot.New(
+	bot, err := discordle.New(
 		commonWords,
 		validWords,
 		6,

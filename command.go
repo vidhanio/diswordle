@@ -1,4 +1,4 @@
-package bot
+package discordle
 
 import (
 	"github.com/bwmarrin/discordgo"

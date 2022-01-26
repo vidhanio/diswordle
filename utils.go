@@ -1,4 +1,4 @@
-package bot
+package discordle
 
 import (
 	"github.com/bwmarrin/discordgo"
@@ -9,7 +9,7 @@ const ephemeralFlag = 1 << 6
 
 const (
 	wordleGreen  = 0x7AB457
-	wordleYellow = 0xF2E8B3
+	wordleYellow = 0xFDCD56
 	wordleBlack  = 0x293137
 	wordleRed    = 0xDF2640
 )

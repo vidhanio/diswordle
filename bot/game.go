@@ -10,60 +10,50 @@ import (
 
 type wordleGame struct {
 	*wordle.Wordle
-	session *discordgo.Session
-
-	guildID string
-	userID  string
+	session     *discordgo.Session
+	interaction *discordgo.Interaction
 
 	emojiMap   [3][26]*discordgo.Emoji
 	emptyEmoji *discordgo.Emoji
 }
 
-func (wb *WordleBot) newWordleGame(guildID, userID string, wordLength int) (*wordleGame, error) {
+func (wb *WordleBot) newWordleGame(i *discordgo.InteractionCreate, wordLength int) (*wordleGame, error) {
 	w, err := wordle.New(wordLength, wb.guessesAllowed, wb.commonWords, wb.validWords)
 	if err != nil {
 		return nil, err
 	}
 
-	if wb.wordles[guildID] == nil {
-		wb.wordles[guildID] = make(map[string]*wordleGame)
+	if wb.wordles[i.GuildID] == nil {
+		wb.wordles[i.GuildID] = make(map[string]*wordleGame)
 	}
 
-	wb.wordles[guildID][userID] = &wordleGame{
-		Wordle:     w,
-		session:    wb.session,
-		guildID:    guildID,
-		userID:     userID,
-		emojiMap:   wb.emojiMap,
-		emptyEmoji: wb.emptyEmoji,
+	wb.wordles[i.GuildID][i.Member.User.ID] = &wordleGame{
+		Wordle:      w,
+		session:     wb.session,
+		interaction: i.Interaction,
+		emojiMap:    wb.emojiMap,
+		emptyEmoji:  wb.emptyEmoji,
 	}
 
-	return wb.wordles[guildID][userID], nil
+	return wb.wordles[i.GuildID][i.Member.User.ID], nil
 }
 
-func (wm wordleGame) String() string {
-	builder := new(strings.Builder)
+func (wg *wordleGame) String() string {
+	builder := strings.Builder{}
 
-	for i, guessType := range wm.GuessTypes() {
-		guess := wm.Guesses()[i]
+	for i, guessType := range wg.GuessTypes() {
+		guess := wg.Guesses()[i]
 		for j, char := range guessType {
-			switch char {
-			case wordle.GuessTypeCorrect:
-				builder.WriteString(wm.emojiMap[0][guess[j]-'a'].MessageFormat())
-			case wordle.GuessTypeWrongPosition:
-				builder.WriteString(wm.emojiMap[1][guess[j]-'a'].MessageFormat())
-			case wordle.GuessTypeWrong:
-				builder.WriteString(wm.emojiMap[2][guess[j]-'a'].MessageFormat())
-			}
+			builder.WriteString(wg.emojiMap[char][guess[j]-'a'].MessageFormat())
 		}
 		builder.WriteRune('\n')
 	}
 
 	i := 0
-	for i < wm.GuessesLeft() {
+	for i < wg.GuessesLeft() {
 		j := 0
-		for j < wm.WordLength() {
-			builder.WriteString(wm.emptyEmoji.MessageFormat())
+		for j < wg.WordLength() {
+			builder.WriteString(wg.emptyEmoji.MessageFormat())
 			j++
 		}
 		builder.WriteRune('\n')
@@ -73,8 +63,8 @@ func (wm wordleGame) String() string {
 	return builder.String()
 }
 
-func (wm wordleGame) embed() *discordgo.MessageEmbed {
-	user, err := wm.session.User(wm.userID)
+func (wg *wordleGame) embed() *discordgo.MessageEmbed {
+	user, err := wg.session.User(wg.interaction.Member.User.ID)
 	if err != nil {
 		return errorEmbed(err)
 	}
@@ -85,17 +75,65 @@ func (wm wordleGame) embed() *discordgo.MessageEmbed {
 			Name:    user.Username,
 		},
 		Title:       "Wordle",
-		Description: wm.String(),
+		Description: wg.String(),
 		Footer: &discordgo.MessageEmbedFooter{
 			IconURL: "https://avatars.githubusercontent.com/u/41439633?v=4",
-			Text:    fmt.Sprintf("Guesses left: %d | Made with ❤️ & Go by Vidhan", wm.GuessesLeft()),
+			Text:    fmt.Sprintf("Guesses left: %d | Made with ❤️ & Go by Vidhan", wg.GuessesLeft()),
 		},
 	}
 
-	if wm.Won() {
-		embed.Title = "Wordle - You won!"
+	if wg.Won() {
+		embed.Title = "Wordle - Won"
 		embed.Color = 0x57F287
+	} else if wg.Cancelled() || wg.Lost() {
+		if wg.Cancelled() {
+			embed.Title = "Wordle - Cancelled"
+		} else {
+			embed.Title = "Wordle - Lost"
+		}
+
+		embed.Color = 0xED4245
+
+		builder := strings.Builder{}
+
+		builder.WriteString(embed.Description)
+
+		builder.WriteRune('\n')
+		builder.WriteString("The word was: ")
+		builder.WriteRune('\n')
+
+		for _, char := range wg.Word() {
+			builder.WriteString(wg.emojiMap[wordle.GuessTypeCorrect][char-'a'].MessageFormat())
+		}
+
+		embed.Description = builder.String()
 	}
 
 	return embed
+}
+
+func (wg *wordleGame) responseCreate() error {
+	return wg.session.InteractionRespond(wg.interaction, embedResponse(wg.embed()))
+}
+
+func (wg *wordleGame) responseUpdate() error {
+	_, err := wg.session.InteractionResponseEdit(
+		wg.session.State.User.ID,
+		wg.interaction,
+		&discordgo.WebhookEdit{
+			Embeds: []*discordgo.MessageEmbed{
+				wg.embed(),
+			},
+		},
+	)
+
+	return err
+}
+
+func (wg *wordleGame) responseDelete() error {
+	return wg.session.InteractionResponseDelete(wg.session.State.User.ID, wg.interaction)
+}
+
+func (wg *wordleGame) setInteraction(i *discordgo.InteractionCreate) {
+	wg.interaction = i.Interaction
 }

@@ -1,6 +1,7 @@
 package wordle
 
 import (
+	"fmt"
 	"math/rand"
 	"strings"
 	"time"
@@ -26,6 +27,8 @@ type Wordle struct {
 	wordLength     int           // Length of word
 	guesses        [][]rune      // Guesses
 	guessTypes     [][]GuessType // Character guesses
+
+	cancelled bool
 }
 
 func New(wordLength, guessesAllowed int, commonWords, validWords []string) (*Wordle, error) {
@@ -43,7 +46,7 @@ func New(wordLength, guessesAllowed int, commonWords, validWords []string) (*Wor
 	}
 
 	if len(wordsWithLength) == 0 {
-		return nil, ErrNoWordWithLength
+		return nil, fmt.Errorf("invalid word length: no words with length %d in common words", wordLength)
 	}
 
 	randomWord = wordsWithLength[r.Intn(len(wordsWithLength))]
@@ -67,26 +70,26 @@ func New(wordLength, guessesAllowed int, commonWords, validWords []string) (*Wor
 
 // Guess a word
 func (w *Wordle) Guess(guess string) ([]GuessType, error) {
+	if w.Done() {
+		return nil, fmt.Errorf("game is done")
+	}
+
 	guess = strings.ToLower(guess)
 	guessRunes := []rune(guess)
 
-	if len(w.guesses) >= w.guessesAllowed {
-		return nil, ErrTooManyGuesses
-	}
-
 	if guessRunes == nil || len(guessRunes) != w.wordLength {
-		return nil, ErrInvalidGuess
+		return nil, fmt.Errorf("invalid word length: wanted %d, got %d", w.wordLength, len(guessRunes))
 	}
 
 	if _, ok := w.validWords[guess]; !ok {
-		return nil, ErrInvalidWord
+		return nil, fmt.Errorf("invalid word: %s was not found in the dictionary", guess)
 	}
 
 	charGuesses := make([]GuessType, w.wordLength)
 
 	for i, g := range guessRunes {
 		if g < 'a' || g > 'z' {
-			return nil, ErrInvalidGuess
+			return nil, fmt.Errorf("invalid word: %c is not a letter", g)
 		}
 
 		if g == w.word[i] {
@@ -104,12 +107,12 @@ func (w *Wordle) Guess(guess string) ([]GuessType, error) {
 	return charGuesses, nil
 }
 
-func (w *Wordle) Won() bool {
-	if len(w.guesses) == 0 {
-		return false
+func (w *Wordle) Word() string {
+	if w.Done() {
+		return string(w.word)
 	}
 
-	return equal(w.guesses[len(w.guesses)-1], w.word)
+	return ""
 }
 
 func (w *Wordle) WordLength() int {
@@ -132,4 +135,28 @@ func (w *Wordle) GuessTypes() [][]GuessType {
 
 func (w *Wordle) GuessesLeft() int {
 	return w.guessesAllowed - len(w.guesses)
+}
+
+func (w *Wordle) Cancel() {
+	w.cancelled = true
+}
+
+func (w *Wordle) Cancelled() bool {
+	return w.cancelled
+}
+
+func (w *Wordle) Won() bool {
+	if len(w.guesses) == 0 {
+		return false
+	}
+
+	return equal(w.guesses[len(w.guesses)-1], w.word)
+}
+
+func (w *Wordle) Lost() bool {
+	return len(w.guesses) >= w.guessesAllowed
+}
+
+func (w *Wordle) Done() bool {
+	return w.Won() || w.Lost() || w.Cancelled()
 }

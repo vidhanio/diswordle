@@ -95,8 +95,6 @@ func (wb *WordleBot) handleWordleStart(s *discordgo.Session, i *discordgo.Intera
 			Msg("Failed to create response")
 
 		errorRespond(s, i, err)
-
-		return
 	}
 }
 
@@ -153,8 +151,6 @@ func (wb *WordleBot) handleWordleCancel(s *discordgo.Session, i *discordgo.Inter
 			Msg("Failed to delete interaction")
 
 		errorRespond(s, i, err)
-
-		return
 	}
 
 	delete(wb.wordles[i.GuildID], i.Member.User.ID)
@@ -177,8 +173,6 @@ func (wb *WordleBot) handleWordleShow(s *discordgo.Session, i *discordgo.Interac
 			Msg("Failed to delete response")
 
 		errorRespond(s, i, err)
-
-		return
 	}
 
 	wg.setInteraction(i)
@@ -189,7 +183,5 @@ func (wb *WordleBot) handleWordleShow(s *discordgo.Session, i *discordgo.Interac
 			Msg("Failed to create response")
 
 		errorRespond(s, i, err)
-
-		return
 	}
 }

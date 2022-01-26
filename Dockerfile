@@ -5,4 +5,4 @@ COPY . .
 
 RUN cd cmd/bot
 RUN go build
-CMD [ "./bot" ]
+CMD [ "cmd/bot/bot" ]

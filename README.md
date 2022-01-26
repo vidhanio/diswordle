@@ -2,13 +2,8 @@
 
 A Discord Wordle bot written in Go.
 
-Uses my own package, [wordle](https://github.com/vidhanio/wordle).
+Uses my own Go package, [wordle](https://github.com/vidhanio/wordle).
 
-## Usage
+## Invite
 
-```sh
-go get github.com/vidhanio/discordle
-# Copy ".example.env" to ".env" and edit it
-cd cmd/bot
-go run .
-```
+[Discord Invite Link](https://discord.com/api/oauth2/authorize?client_id=935558888718209024&permissions=0&scope=bot%20applications.commands)

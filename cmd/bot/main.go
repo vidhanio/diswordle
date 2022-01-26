@@ -16,11 +16,11 @@ import (
 func main() {
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 
+	dictionaryFile := ""
+	flag.StringVar(&dictionaryFile, "dictionary", "dictionary.txt", "filename of dictionary to use")
+
 	commonFile := ""
 	flag.StringVar(&commonFile, "common", "common.txt", "filename of common words to use")
-
-	dictionaryFile := ""
-	flag.StringVar(&dictionaryFile, "dictionary", "dictionary.txt", "filename of words to use")
 
 	guesses := 0
 	flag.IntVar(&guesses, "guesses", 6, "Number of guesses allowed")
@@ -34,11 +34,11 @@ func main() {
 
 	log.Debug().Msg("Reading word lists...")
 
-	dictionary := make([]string, 370103)
+	dictionary := []string{}
 
 	file, err := os.Open(dictionaryFile)
 	if err != nil {
-		log.Fatal().Err(err).Msg("Failed to open words.txt")
+		log.Fatal().Err(err).Msg("Failed to open dictionary.txt")
 	}
 
 	scanner := bufio.NewScanner(file)
@@ -48,14 +48,14 @@ func main() {
 
 	err = file.Close()
 	if err != nil {
-		log.Fatal().Err(err).Msg("Failed to close words.txt")
+		log.Fatal().Err(err).Msg("Failed to close dictionary.txt")
 	}
 
-	common := make([]string, 10000)
+	common := []string{}
 
 	file, err = os.Open(commonFile)
 	if err != nil {
-		log.Fatal().Err(err).Msg("Failed to open commonwords.txt")
+		log.Fatal().Err(err).Msg("Failed to open common.txt")
 	}
 
 	scanner = bufio.NewScanner(file)
@@ -65,7 +65,7 @@ func main() {
 
 	err = file.Close()
 	if err != nil {
-		log.Fatal().Err(err).Msg("Failed to close commonwords.txt")
+		log.Fatal().Err(err).Msg("Failed to close common.txt")
 	}
 
 	log.Debug().Msg("Done reading word lists.")

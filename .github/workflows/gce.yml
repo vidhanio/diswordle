@@ -31,11 +31,11 @@ jobs:
 
       - name: Build the Docker image
         id: build-image
-        run: docker build . -t gcr.io/${{ env.PROJECT_ID }}/${{ env.SERVICE }}:${{ github.sha }}
+        run: docker build . -t gcr.io/${{ env.PROJECT_ID }}/${{ env.SERVICE }}:${{ github.ref_name }} -t gcr.io/${{ env.PROJECT_ID }}/${{ env.SERVICE }}:latest
 
       - name: Publish the Docker image
         id: publish-image
-        run: docker push gcr.io/${{ env.PROJECT_ID }}/${{ env.SERVICE }}:${{ github.sha }}
+        run: docker push gcr.io/${{ env.PROJECT_ID }}/${{ env.SERVICE }} --all-tags
 
   deploy:
     name: Deploy

@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"flag"
 	"os"
 	"os/signal"
 	"syscall"
@@ -15,6 +16,15 @@ import (
 func main() {
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 
+	wordsFile := ""
+	flag.StringVar(&wordsFile, "words", "words.txt", "filename of words to use")
+	commonWordsFile := ""
+	flag.StringVar(&commonWordsFile, "commonwords", "commonwords.txt", "filename of common words to use")
+	guesses := 0
+	flag.IntVar(&guesses, "guesses", 6, "Number of guesses allowed")
+
+	flag.Parse()
+
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal().Err(err).Msg("Failed to load .env file")
@@ -23,7 +33,7 @@ func main() {
 	log.Debug().Msg("Reading word lists...")
 	validWords := make([]string, 370103)
 
-	file, err := os.Open("words.txt")
+	file, err := os.Open(wordsFile)
 	if err != nil {
 		log.Fatal().Err(err).Msg("Failed to open words.txt")
 	}
@@ -40,7 +50,7 @@ func main() {
 
 	commonWords := make([]string, 10000)
 
-	file, err = os.Open("commonwords.txt")
+	file, err = os.Open(commonWordsFile)
 	if err != nil {
 		log.Fatal().Err(err).Msg("Failed to open commonwords.txt")
 	}
@@ -61,7 +71,7 @@ func main() {
 	bot, err := discordle.New(
 		commonWords,
 		validWords,
-		6,
+		guesses,
 		os.Getenv("DISCORD_BOT_TOKEN"),
 		[3]string{os.Getenv("CORRECT_EMOJI_GUILD"), os.Getenv("WRONG_POSITION_EMOJI_GUILD"), os.Getenv("WRONG_EMOJI_GUILD")},
 		os.Getenv("EMPTY_EMOJI_GUILD"),

@@ -18,7 +18,7 @@ type wordleGame struct {
 }
 
 func (wb *WordleBot) newWordleGame(i *discordgo.InteractionCreate, wordLength int) (*wordleGame, error) {
-	w, err := wordle.New(wordLength, wb.guessesAllowed, wb.commonWords, wb.validWords)
+	w, err := wordle.New(wordLength, wb.guessesAllowed, wb.dictionary, wb.common)
 	if err != nil {
 		return nil, err
 	}

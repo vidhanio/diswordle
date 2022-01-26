@@ -10,8 +10,8 @@ type WordleBot struct {
 	wordles map[string]map[string]*wordleGame
 	session *discordgo.Session
 
-	commonWords    []string
-	validWords     []string
+	dictionary     []string
+	common         []string
 	guessesAllowed int
 
 	emojiGuilds     [3]string
@@ -20,7 +20,7 @@ type WordleBot struct {
 	emptyEmoji      *discordgo.Emoji
 }
 
-func New(commonWords, validWords []string, guessesAllowed int, botToken string, emojiGuilds [3]string, emptyEmojiGuild string) (*WordleBot, error) {
+func New(dictionary, common []string, guessesAllowed int, botToken string, emojiGuilds [3]string, emptyEmojiGuild string) (*WordleBot, error) {
 	session, err := discordgo.New("Bot " + botToken)
 	if err != nil {
 		return nil, err
@@ -29,8 +29,8 @@ func New(commonWords, validWords []string, guessesAllowed int, botToken string, 
 	wb := &WordleBot{
 		wordles:         make(map[string]map[string]*wordleGame),
 		session:         session,
-		commonWords:     commonWords,
-		validWords:      validWords,
+		dictionary:      dictionary,
+		common:          common,
 		guessesAllowed:  guessesAllowed,
 		emptyEmojiGuild: emptyEmojiGuild,
 		emojiGuilds:     emojiGuilds,

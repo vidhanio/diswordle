@@ -16,10 +16,12 @@ import (
 func main() {
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 
-	wordsFile := ""
-	flag.StringVar(&wordsFile, "words", "words.txt", "filename of words to use")
-	commonWordsFile := ""
-	flag.StringVar(&commonWordsFile, "commonwords", "commonwords.txt", "filename of common words to use")
+	commonFile := ""
+	flag.StringVar(&commonFile, "common", "common.txt", "filename of common words to use")
+
+	dictionaryFile := ""
+	flag.StringVar(&dictionaryFile, "dictionary", "dictionary.txt", "filename of words to use")
+
 	guesses := 0
 	flag.IntVar(&guesses, "guesses", 6, "Number of guesses allowed")
 
@@ -31,16 +33,17 @@ func main() {
 	}
 
 	log.Debug().Msg("Reading word lists...")
-	validWords := make([]string, 370103)
 
-	file, err := os.Open(wordsFile)
+	dictionary := make([]string, 370103)
+
+	file, err := os.Open(dictionaryFile)
 	if err != nil {
 		log.Fatal().Err(err).Msg("Failed to open words.txt")
 	}
 
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
-		validWords = append(validWords, scanner.Text())
+		dictionary = append(dictionary, scanner.Text())
 	}
 
 	err = file.Close()
@@ -48,16 +51,16 @@ func main() {
 		log.Fatal().Err(err).Msg("Failed to close words.txt")
 	}
 
-	commonWords := make([]string, 10000)
+	common := make([]string, 10000)
 
-	file, err = os.Open(commonWordsFile)
+	file, err = os.Open(commonFile)
 	if err != nil {
 		log.Fatal().Err(err).Msg("Failed to open commonwords.txt")
 	}
 
 	scanner = bufio.NewScanner(file)
 	for scanner.Scan() {
-		commonWords = append(commonWords, scanner.Text())
+		common = append(common, scanner.Text())
 	}
 
 	err = file.Close()
@@ -69,8 +72,8 @@ func main() {
 
 	log.Debug().Msg("Starting bot...")
 	bot, err := discordle.New(
-		commonWords,
-		validWords,
+		dictionary,
+		common,
 		guesses,
 		os.Getenv("DISCORD_BOT_TOKEN"),
 		[3]string{os.Getenv("CORRECT_EMOJI_GUILD"), os.Getenv("WRONG_POSITION_EMOJI_GUILD"), os.Getenv("WRONG_EMOJI_GUILD")},

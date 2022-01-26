@@ -72,6 +72,7 @@ func (wg *wordleGame) embed() *discordgo.MessageEmbed {
 		},
 		Title:       "Wordle",
 		Description: wg.String(),
+		Color:       wordleBlack,
 		Footer: &discordgo.MessageEmbedFooter{
 			IconURL: "https://avatars.githubusercontent.com/u/41439633?v=4",
 			Text:    fmt.Sprintf("Guesses left: %d | Made with ❤️ & Go by Vidhan", wg.GuessesLeft()),

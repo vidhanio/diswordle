@@ -1,4 +1,4 @@
-module github.com/vidhanio/wordle
+module github.com/vidhanio/discordle
 
 go 1.18
 
@@ -6,6 +6,7 @@ require (
 	github.com/bwmarrin/discordgo v0.23.3-0.20211228023845-29269347e820
 	github.com/joho/godotenv v1.4.0
 	github.com/rs/zerolog v1.26.1
+	github.com/vidhanio/wordle v1.0.1-0.20220126023735-7aae6c1d5642
 )
 
 require (

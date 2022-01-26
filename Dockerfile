@@ -9,4 +9,4 @@ RUN go mod download
 RUN go build -o /app/bin/bot ./cmd/bot
 
 
-CMD ["/app/bin/bot", "-words", "/app/words/words.txt", "-commonwords", "/app/words/commonwords.txt"]
+CMD ["/app/bin/bot", "-dictionary", "/app/words/dictionary.txt", "-common", "/app/words/common.txt"]

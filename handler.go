@@ -13,6 +13,13 @@ func (wb *WordleBot) setGuilds(s *discordgo.Session, r *discordgo.Ready) {
 	}
 }
 
+func (wb *WordleBot) createGuild(s *discordgo.Session, g *discordgo.GuildCreate) {
+	_, ok := wb.wordles[g.ID]
+	if !ok {
+		wb.wordles[g.ID] = make(map[string]*wordleGame)
+	}
+}
+
 func (wb *WordleBot) setEmojis(s *discordgo.Session, r *discordgo.Ready) {
 	correctRegex := regexp.MustCompile(`([a-z])_green`)
 	wrongPositionRegex := regexp.MustCompile(`([a-z])_yellow`)

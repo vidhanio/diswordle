@@ -23,10 +23,6 @@ func (wb *WordleBot) newWordleGame(i *discordgo.InteractionCreate, wordLength in
 		return nil, err
 	}
 
-	if wb.wordles[i.GuildID] == nil {
-		wb.wordles[i.GuildID] = make(map[string]*wordleGame)
-	}
-
 	wb.wordles[i.GuildID][i.Member.User.ID] = &wordleGame{
 		Wordle:      w,
 		session:     wb.session,

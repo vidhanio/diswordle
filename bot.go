@@ -38,6 +38,7 @@ func New(commonWords, validWords []string, guessesAllowed int, botToken string, 
 
 	wb.session.AddHandler(wb.setEmojis)
 	wb.session.AddHandler(wb.setGuilds)
+	wb.session.AddHandler(wb.createGuild)
 
 	wb.session.AddHandler(wb.handleWordle)
 

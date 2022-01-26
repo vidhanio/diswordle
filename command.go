@@ -1,8 +1,6 @@
 package bot
 
 import (
-	"errors"
-
 	"github.com/bwmarrin/discordgo"
 	"github.com/rs/zerolog/log"
 )
@@ -69,12 +67,7 @@ func (wb *WordleBot) handleWordle(s *discordgo.Session, i *discordgo.Interaction
 func (wb *WordleBot) handleWordleStart(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	_, ok := wb.wordles[i.GuildID][i.Member.User.ID]
 	if ok {
-		err := errorRespond(s, i, errors.New("A wordle is already in progress. Use `/cancel` to cancel it."))
-		if err != nil {
-			log.Error().
-				Err(err).
-				Msg("Failed to respond to interaction")
-		}
+		warningRespond(s, i, "A wordle is already in progress. Use `/cancel` to cancel it.")
 
 		return
 	}
@@ -86,24 +79,22 @@ func (wb *WordleBot) handleWordleStart(s *discordgo.Session, i *discordgo.Intera
 
 	wg, err := wb.newWordleGame(i, wordLength)
 	if err != nil {
-		err := errorRespond(s, i, err)
-		if err != nil {
-			log.Error().
-				Err(err).
-				Msg("Failed to respond to interaction")
-		}
+		log.Error().
+			Err(err).
+			Msg("Failed to create wordle game")
+
+		errorRespond(s, i, err)
 
 		return
 	}
 
 	err = wg.responseCreate()
 	if err != nil {
-		err := errorRespond(s, i, err)
-		if err != nil {
-			log.Error().
-				Err(err).
-				Msg("Failed to respond to interaction")
-		}
+		log.Error().
+			Err(err).
+			Msg("Failed to create response")
+
+		errorRespond(s, i, err)
 
 		return
 	}
@@ -112,12 +103,7 @@ func (wb *WordleBot) handleWordleStart(s *discordgo.Session, i *discordgo.Intera
 func (wb *WordleBot) handleWordleGuess(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	wg, ok := wb.wordles[i.GuildID][i.Member.User.ID]
 	if !ok {
-		err := errorRespond(s, i, errors.New("No wordle in progress. Use `/start` to start a new game."))
-		if err != nil {
-			log.Error().
-				Err(err).
-				Msg("Failed to respond to interaction")
-		}
+		warningRespond(s, i, "No wordle in progress. Use `/start` to start a new game.")
 
 		return
 	}
@@ -125,12 +111,7 @@ func (wb *WordleBot) handleWordleGuess(s *discordgo.Session, i *discordgo.Intera
 	guess := i.ApplicationCommandData().Options[0].StringValue()
 	_, err := wg.Guess(guess)
 	if err != nil {
-		err := errorRespond(s, i, err)
-		if err != nil {
-			log.Error().
-				Err(err).
-				Msg("Failed to respond to interaction")
-		}
+		errorRespond(s, i, err)
 
 		return
 	}
@@ -143,17 +124,12 @@ func (wb *WordleBot) handleWordleGuess(s *discordgo.Session, i *discordgo.Intera
 				Msg("Failed to edit interaction")
 		}
 
-		return
-	}
-
-	err = successRespond(s, i, "Guess accepted")
-	if err != nil {
-		log.Error().
-			Err(err).
-			Msg("Failed to respond to interaction")
+		errorRespond(s, i, err)
 
 		return
 	}
+
+	successRespond(s, i, "Guess accepted")
 
 	if wg.Done() {
 		delete(wb.wordles[i.GuildID], i.Member.User.ID)
@@ -163,12 +139,7 @@ func (wb *WordleBot) handleWordleGuess(s *discordgo.Session, i *discordgo.Intera
 func (wb *WordleBot) handleWordleCancel(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	wg, ok := wb.wordles[i.GuildID][i.Member.User.ID]
 	if !ok {
-		err := errorRespond(s, i, errors.New("No wordle in progress. Use `/start` to start a new game."))
-		if err != nil {
-			log.Error().
-				Err(err).
-				Msg("Failed to respond to interaction")
-		}
+		warningRespond(s, i, "No wordle in progress. Use `/start` to start a new game.")
 
 		return
 	}
@@ -180,41 +151,32 @@ func (wb *WordleBot) handleWordleCancel(s *discordgo.Session, i *discordgo.Inter
 		log.Error().
 			Err(err).
 			Msg("Failed to delete interaction")
+
+		errorRespond(s, i, err)
+
+		return
 	}
 
 	delete(wb.wordles[i.GuildID], i.Member.User.ID)
 
-	err = successRespond(s, i, "Wordle canceled")
-	if err != nil {
-		log.Error().
-			Err(err).
-			Msg("Failed to respond to interaction")
-
-		return
-	}
+	successRespond(s, i, "Wordle cancelled")
 }
 
 func (wb *WordleBot) handleWordleShow(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	wg, ok := wb.wordles[i.GuildID][i.Member.User.ID]
 	if !ok {
-		err := errorRespond(s, i, errors.New("No wordle in progress. Use `/start` to start a new game."))
-		if err != nil {
-			log.Error().
-				Err(err).
-				Msg("Failed to respond to interaction")
-		}
+		warningRespond(s, i, "No wordle in progress. Use `/start` to start a new game.")
 
 		return
 	}
 
 	err := wg.responseDelete()
 	if err != nil {
-		err := errorRespond(s, i, err)
-		if err != nil {
-			log.Error().
-				Err(err).
-				Msg("Failed to delete interaction")
-		}
+		log.Error().
+			Err(err).
+			Msg("Failed to delete response")
+
+		errorRespond(s, i, err)
 
 		return
 	}
@@ -222,12 +184,11 @@ func (wb *WordleBot) handleWordleShow(s *discordgo.Session, i *discordgo.Interac
 	wg.setInteraction(i)
 	err = wg.responseCreate()
 	if err != nil {
-		err := errorRespond(s, i, err)
-		if err != nil {
-			log.Error().
-				Err(err).
-				Msg("Failed to respond to interaction")
-		}
+		log.Error().
+			Err(err).
+			Msg("Failed to create response")
+
+		errorRespond(s, i, err)
 
 		return
 	}

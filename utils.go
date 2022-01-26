@@ -1,8 +1,18 @@
 package bot
 
-import "github.com/bwmarrin/discordgo"
+import (
+	"github.com/bwmarrin/discordgo"
+	"github.com/rs/zerolog/log"
+)
 
 const ephemeralFlag = 1 << 6
+
+const (
+	wordleGreen  = 0x7AB457
+	wordleYellow = 0xF2E8B3
+	wordleBlack  = 0x293137
+	wordleRed    = 0xDF2640
+)
 
 func ephemeralify(r *discordgo.InteractionResponse) *discordgo.InteractionResponse {
 	r.Data.Flags |= ephemeralFlag
@@ -32,11 +42,27 @@ func embedResponse(es ...*discordgo.MessageEmbed) *discordgo.InteractionResponse
 	}
 }
 
+func embed(title string, description string) *discordgo.MessageEmbed {
+	return &discordgo.MessageEmbed{
+		Title:       title,
+		Description: description,
+		Color:       wordleBlack,
+	}
+}
+
 func successEmbed(m string) *discordgo.MessageEmbed {
 	return &discordgo.MessageEmbed{
 		Title:       "Success",
 		Description: m,
-		Color:       0x57F287,
+		Color:       wordleGreen,
+	}
+}
+
+func warningEmbed(m string) *discordgo.MessageEmbed {
+	return &discordgo.MessageEmbed{
+		Title:       "Warning",
+		Description: m,
+		Color:       wordleYellow,
 	}
 }
 
@@ -44,7 +70,7 @@ func errorEmbed(err error) *discordgo.MessageEmbed {
 	return &discordgo.MessageEmbed{
 		Title:       "Error",
 		Description: err.Error(),
-		Color:       0xED4245,
+		Color:       wordleRed,
 	}
 }
 
@@ -60,14 +86,23 @@ func embedMessage(es ...*discordgo.MessageEmbed) *discordgo.MessageSend {
 	}
 }
 
-func respond(s *discordgo.Session, i *discordgo.InteractionCreate, r *discordgo.InteractionResponse) error {
-	return s.InteractionRespond(i.Interaction, r)
+func respond(s *discordgo.Session, i *discordgo.InteractionCreate, r *discordgo.InteractionResponse) {
+	err := s.InteractionRespond(i.Interaction, r)
+	if err != nil {
+		log.Error().
+			Err(err).
+			Msg("Failed to respond to interaction")
+	}
 }
 
-func successRespond(s *discordgo.Session, i *discordgo.InteractionCreate, m string) error {
-	return respond(s, i, ephemeralify(embedResponse(successEmbed(m))))
+func successRespond(s *discordgo.Session, i *discordgo.InteractionCreate, m string) {
+	respond(s, i, ephemeralify(embedResponse(successEmbed(m))))
 }
 
-func errorRespond(s *discordgo.Session, i *discordgo.InteractionCreate, err error) error {
-	return respond(s, i, ephemeralify(embedResponse(errorEmbed(err))))
+func warningRespond(s *discordgo.Session, i *discordgo.InteractionCreate, m string) {
+	respond(s, i, ephemeralify(embedResponse(warningEmbed(m))))
+}
+
+func errorRespond(s *discordgo.Session, i *discordgo.InteractionCreate, err error) {
+	respond(s, i, ephemeralify(embedResponse(errorEmbed(err))))
 }

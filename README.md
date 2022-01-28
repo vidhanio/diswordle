@@ -1,4 +1,4 @@
-# discordle
+# diswordle
 
 A Discord Wordle bot written in Go.
 

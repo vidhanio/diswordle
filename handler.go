@@ -1,4 +1,4 @@
-package discordle
+package diswordle
 
 import (
 	"regexp"

@@ -1,4 +1,4 @@
-module github.com/vidhanio/discordle
+module github.com/vidhanio/diswordle
 
 go 1.18
 

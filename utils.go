@@ -5,6 +5,8 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+type void struct{}
+
 const ephemeralFlag = 1 << 6
 
 const (

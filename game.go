@@ -17,7 +17,24 @@ type wordleGame struct {
 	emptyEmoji *discordgo.Emoji
 }
 
+func (wb *WordleBot) getWordleGame(i *discordgo.InteractionCreate) (*wordleGame, bool) {
+	g, ok := wb.wordles[i.GuildID]
+	if !ok {
+		g = make(map[string]*wordleGame)
+		wb.wordles[i.GuildID] = g
+	}
+
+	w, ok := g[i.Member.User.ID]
+
+	return w, ok
+}
+
 func (wb *WordleBot) newWordleGame(i *discordgo.InteractionCreate, wordLength int) (*wordleGame, error) {
+	wg, ok := wb.getWordleGame(i)
+	if ok {
+		return wg, nil
+	}
+
 	w, err := wordle.New(wordLength, wb.guessesAllowed, wb.dictionary, wb.common)
 	if err != nil {
 		return nil, err
@@ -34,13 +51,17 @@ func (wb *WordleBot) newWordleGame(i *discordgo.InteractionCreate, wordLength in
 	return wb.wordles[i.GuildID][i.Member.User.ID], nil
 }
 
-func (wg *wordleGame) String() string {
-	builder := strings.Builder{}
+func (wg *wordleGame) emoji(guessType wordle.GuessType, c byte) string {
+	return wg.emojiMap[guessType][c-'a'].MessageFormat()
+}
 
-	for i, guessType := range wg.GuessTypes() {
+func (wg *wordleGame) String() string {
+	builder := &strings.Builder{}
+
+	for i, wordGuessTypes := range wg.GuessTypes() {
 		guess := wg.Guesses()[i]
-		for j, char := range guessType {
-			builder.WriteString(wg.emojiMap[char][guess[j]-'a'].MessageFormat())
+		for j, guessType := range wordGuessTypes {
+			builder.WriteString(wg.emoji(guessType, guess[j]))
 		}
 		builder.WriteRune('\n')
 	}
@@ -74,8 +95,7 @@ func (wg *wordleGame) embed() *discordgo.MessageEmbed {
 		Description: wg.String(),
 		Color:       wordleBlack,
 		Footer: &discordgo.MessageEmbedFooter{
-			IconURL: "https://avatars.githubusercontent.com/u/41439633?v=4",
-			Text:    fmt.Sprintf("Guesses left: %d | Made with ❤️ & Go by Vidhan", wg.GuessesLeft()),
+			Text: fmt.Sprintf("Guesses left: %d | Made with ❤️ & Go by vidhan#0001", wg.GuessesLeft()),
 		},
 	}
 
@@ -91,7 +111,7 @@ func (wg *wordleGame) embed() *discordgo.MessageEmbed {
 
 		embed.Color = wordleRed
 
-		builder := strings.Builder{}
+		builder := &strings.Builder{}
 
 		builder.WriteString(embed.Description)
 

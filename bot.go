@@ -7,12 +7,14 @@ import (
 )
 
 type WordleBot struct {
-	wordles map[string]map[string]*wordleGame
-	session *discordgo.Session
+	wordles      map[string]map[string]*wordleGame
+	guildWordles map[string]*guildWordleGame
+	session      *discordgo.Session
 
-	dictionary     []string
-	common         []string
-	guessesAllowed int
+	dictionary          []string
+	common              []string
+	guessesAllowed      int
+	guildGuessesAllowed int
 
 	emojiGuilds     [3]string
 	emojiMap        [3][26]*discordgo.Emoji
@@ -20,20 +22,22 @@ type WordleBot struct {
 	emptyEmoji      *discordgo.Emoji
 }
 
-func New(dictionary, common []string, guessesAllowed int, botToken string, emojiGuilds [3]string, emptyEmojiGuild string) (*WordleBot, error) {
+func New(dictionary, common []string, guessesAllowed, guildGuessesAllowed int, botToken string, emojiGuilds [3]string, emptyEmojiGuild string) (*WordleBot, error) {
 	session, err := discordgo.New("Bot " + botToken)
 	if err != nil {
 		return nil, err
 	}
 
 	wb := &WordleBot{
-		wordles:         make(map[string]map[string]*wordleGame),
-		session:         session,
-		dictionary:      dictionary,
-		common:          common,
-		guessesAllowed:  guessesAllowed,
-		emptyEmojiGuild: emptyEmojiGuild,
-		emojiGuilds:     emojiGuilds,
+		wordles:             make(map[string]map[string]*wordleGame),
+		guildWordles:        make(map[string]*guildWordleGame),
+		session:             session,
+		dictionary:          dictionary,
+		common:              common,
+		guessesAllowed:      guessesAllowed,
+		guildGuessesAllowed: guildGuessesAllowed,
+		emptyEmojiGuild:     emptyEmojiGuild,
+		emojiGuilds:         emojiGuilds,
 	}
 
 	wb.session.AddHandler(wb.setEmojis)
@@ -41,6 +45,7 @@ func New(dictionary, common []string, guessesAllowed int, botToken string, emoji
 	wb.session.AddHandler(wb.createGuild)
 
 	wb.session.AddHandler(wb.handleWordle)
+	wb.session.AddHandler(wb.handleGuildWordle)
 
 	return wb, nil
 }
@@ -54,7 +59,7 @@ func (wb *WordleBot) Start() error {
 	_, err = wb.session.ApplicationCommandBulkOverwrite(
 		wb.session.State.User.ID,
 		os.Getenv("DISCORD_GUILD_ID"),
-		wordleApplicationCommands,
+		append(wordleApplicationCommands, guildWordleApplicationCommands...),
 	)
 
 	return err

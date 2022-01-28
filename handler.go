@@ -29,7 +29,7 @@ func (wb *WordleBot) setEmojis(s *discordgo.Session, r *discordgo.Ready) {
 		if g.ID == wb.emojiGuilds[0] {
 			emojis, err := s.GuildEmojis(g.ID)
 			if err != nil {
-				log.Fatal().Err(err).Msg("Failed to get guild emojis")
+				log.Error().Err(err).Msg("Failed to get guild emojis")
 			}
 
 			for _, e := range emojis {
@@ -43,7 +43,7 @@ func (wb *WordleBot) setEmojis(s *discordgo.Session, r *discordgo.Ready) {
 		if g.ID == wb.emojiGuilds[1] {
 			emojis, err := s.GuildEmojis(g.ID)
 			if err != nil {
-				log.Fatal().Err(err).Msg("Failed to get guild emojis")
+				log.Error().Err(err).Msg("Failed to get guild emojis")
 			}
 
 			for _, e := range emojis {
@@ -57,7 +57,7 @@ func (wb *WordleBot) setEmojis(s *discordgo.Session, r *discordgo.Ready) {
 		if g.ID == wb.emojiGuilds[2] {
 			emojis, err := s.GuildEmojis(g.ID)
 			if err != nil {
-				log.Fatal().Err(err).Msg("Failed to get guild emojis")
+				log.Error().Err(err).Msg("Failed to get guild emojis")
 			}
 
 			for _, e := range emojis {
@@ -71,7 +71,7 @@ func (wb *WordleBot) setEmojis(s *discordgo.Session, r *discordgo.Ready) {
 		if g.ID == wb.emptyEmojiGuild {
 			emojis, err := s.GuildEmojis(wb.emptyEmojiGuild)
 			if err != nil {
-				log.Fatal().Err(err).Msg("Failed to get guild emojis")
+				log.Error().Err(err).Msg("Failed to get guild emojis")
 			}
 
 			for _, e := range emojis {

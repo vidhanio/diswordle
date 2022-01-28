@@ -25,6 +25,9 @@ func main() {
 	guesses := 0
 	flag.IntVar(&guesses, "guesses", 6, "Number of guesses allowed")
 
+	guildGuesses := 0
+	flag.IntVar(&guildGuesses, "guild-guesses", 10, "Number of guesses allowed for guild wordle")
+
 	flag.Parse()
 
 	err := godotenv.Load()
@@ -75,6 +78,7 @@ func main() {
 		dictionary,
 		common,
 		guesses,
+		guildGuesses,
 		os.Getenv("DISCORD_BOT_TOKEN"),
 		[3]string{os.Getenv("CORRECT_EMOJI_GUILD"), os.Getenv("WRONG_POSITION_EMOJI_GUILD"), os.Getenv("WRONG_EMOJI_GUILD")},
 		os.Getenv("EMPTY_EMOJI_GUILD"),

@@ -41,6 +41,11 @@ var wordleApplicationCommands = []*discordgo.ApplicationCommand{
 		Description: "Cancel the current wordle",
 		Type:        discordgo.ChatApplicationCommand,
 	},
+	{
+		Name:        "letters",
+		Description: "Show the letters that can be used in the wordle",
+		Type:        discordgo.ChatApplicationCommand,
+	},
 }
 
 func (wb *WordleBot) handleWordle(s *discordgo.Session, i *discordgo.InteractionCreate) {
@@ -56,6 +61,8 @@ func (wb *WordleBot) handleWordle(s *discordgo.Session, i *discordgo.Interaction
 			wb.handleWordleCancel(s, i)
 		case "show":
 			wb.handleWordleShow(s, i)
+		case "letters":
+			wb.handleWordleLetters(s, i)
 		}
 	case discordgo.InteractionMessageComponent:
 		d := i.MessageComponentData()
@@ -184,4 +191,15 @@ func (wb *WordleBot) handleWordleShow(s *discordgo.Session, i *discordgo.Interac
 
 		errorRespond(s, i, err)
 	}
+}
+
+func (wb *WordleBot) handleWordleLetters(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	wg, ok := wb.getWordleGame(i)
+	if !ok {
+		warningRespond(s, i, "No wordle in progress. Use `/start` to start a new game.")
+
+		return
+	}
+
+	respond(s, i, ephemeralify(embedResponse(wg.lettersEmbed())))
 }

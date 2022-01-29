@@ -15,7 +15,8 @@ type guildWordleGame struct {
 	session     *discordgo.Session
 	interaction *discordgo.Interaction
 
-	emojiMap   [3][26]*discordgo.Emoji
+	emojiMap   map[wordle.GuessResult][26]*discordgo.Emoji
+	blankEmoji *discordgo.Emoji
 	emptyEmoji *discordgo.Emoji
 
 	cancelVotes map[string]bool
@@ -43,6 +44,7 @@ func (wb *WordleBot) newGuildWordleGame(i *discordgo.InteractionCreate, wordLeng
 		session:     wb.session,
 		interaction: i.Interaction,
 		emojiMap:    wb.emojiMap,
+		blankEmoji:  wb.blankEmoji,
 		emptyEmoji:  wb.emptyEmoji,
 
 		cancelVotes: make(map[string]bool),
@@ -53,17 +55,17 @@ func (wb *WordleBot) newGuildWordleGame(i *discordgo.InteractionCreate, wordLeng
 	return wb.guildWordles[i.GuildID], nil
 }
 
-func (wg *guildWordleGame) emoji(guessType wordle.GuessType, c byte) string {
-	return wg.emojiMap[guessType][c-'a'].MessageFormat()
+func (wg *guildWordleGame) emoji(guessResult wordle.GuessResult, c rune) string {
+	return wg.emojiMap[guessResult][c-'a'].MessageFormat()
 }
 
 func (wg *guildWordleGame) String() string {
 	builder := &strings.Builder{}
 
-	for i, wordGuessTypes := range wg.GuessTypes() {
+	for i, wordGuessResults := range wg.GuessResults() {
 		guess := wg.Guesses()[i]
-		for j, guessType := range wordGuessTypes {
-			builder.WriteString(wg.emoji(guessType, guess[j]))
+		for j, guessResult := range wordGuessResults {
+			builder.WriteString(wg.emoji(guessResult, rune(guess[j])))
 		}
 		builder.WriteRune('\n')
 	}
@@ -122,11 +124,50 @@ func (wg *guildWordleGame) embed() *discordgo.MessageEmbed {
 		builder.WriteRune('\n')
 
 		for _, char := range wg.Word() {
-			builder.WriteString(wg.emojiMap[wordle.GuessTypeCorrect][char-'a'].MessageFormat())
+			builder.WriteString(wg.emoji(wordle.GuessResultCorrect, char))
 		}
 
 		embed.Description = builder.String()
 	}
+
+	return embed
+}
+
+func (wg *guildWordleGame) lettersEmbed() *discordgo.MessageEmbed {
+	keyboard := [26]rune{
+		'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p',
+		'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l',
+		'z', 'x', 'c', 'v', 'b', 'n', 'm',
+	}
+
+	embed := &discordgo.MessageEmbed{
+		Title: "Letters",
+		Color: wordleBlack,
+		Footer: &discordgo.MessageEmbedFooter{
+			Text: "Made with ❤️ & Go by vidhan#0001",
+		},
+	}
+
+	letters := wg.Letters()
+	builder := &strings.Builder{}
+
+	for _, key := range keyboard {
+		for c, result := range letters {
+			if c+'a' == int(key) {
+				builder.WriteString(wg.emoji(result, key))
+
+				if key == 'p' {
+					builder.WriteRune('\n')
+				}
+				if key == 'l' {
+					builder.WriteRune('\n')
+					builder.WriteString(wg.blankEmoji.MessageFormat())
+				}
+			}
+		}
+	}
+
+	embed.Description = builder.String()
 
 	return embed
 }

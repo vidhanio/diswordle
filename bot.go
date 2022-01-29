@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"github.com/bwmarrin/discordgo"
+	"github.com/vidhanio/wordle"
 )
 
 type WordleBot struct {
@@ -16,13 +17,15 @@ type WordleBot struct {
 	guessesAllowed      int
 	guildGuessesAllowed int
 
-	emojiGuilds     [3]string
-	emojiMap        [3][26]*discordgo.Emoji
-	emptyEmojiGuild string
-	emptyEmoji      *discordgo.Emoji
+	emojiGuilds    map[wordle.GuessResult]string
+	miscEmojiGuild string
+
+	emojiMap   map[wordle.GuessResult][26]*discordgo.Emoji
+	blankEmoji *discordgo.Emoji
+	emptyEmoji *discordgo.Emoji
 }
 
-func New(dictionary, common []string, guessesAllowed, guildGuessesAllowed int, botToken string, emojiGuilds [3]string, emptyEmojiGuild string) (*WordleBot, error) {
+func New(dictionary, common []string, guessesAllowed, guildGuessesAllowed int, botToken string, emojiGuilds map[wordle.GuessResult]string, miscEmojiGuild string) (*WordleBot, error) {
 	session, err := discordgo.New("Bot " + botToken)
 	if err != nil {
 		return nil, err
@@ -36,7 +39,7 @@ func New(dictionary, common []string, guessesAllowed, guildGuessesAllowed int, b
 		common:              common,
 		guessesAllowed:      guessesAllowed,
 		guildGuessesAllowed: guildGuessesAllowed,
-		emptyEmojiGuild:     emptyEmojiGuild,
+		miscEmojiGuild:      miscEmojiGuild,
 		emojiGuilds:         emojiGuilds,
 	}
 

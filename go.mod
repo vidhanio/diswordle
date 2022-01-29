@@ -9,6 +9,8 @@ require (
 	github.com/vidhanio/wordle v1.2.2
 )
 
+replace github.com/vidhanio/wordle => ../wordle
+
 require (
 	github.com/gorilla/websocket v1.4.2 // indirect
 	golang.org/x/crypto v0.0.0-20220112180741-5e0467b6c7ce // indirect

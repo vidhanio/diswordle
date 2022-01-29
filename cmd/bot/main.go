@@ -11,6 +11,7 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/vidhanio/diswordle"
+	"github.com/vidhanio/wordle"
 )
 
 func main() {
@@ -80,8 +81,13 @@ func main() {
 		guesses,
 		guildGuesses,
 		os.Getenv("DISCORD_BOT_TOKEN"),
-		[3]string{os.Getenv("CORRECT_EMOJI_GUILD"), os.Getenv("WRONG_POSITION_EMOJI_GUILD"), os.Getenv("WRONG_EMOJI_GUILD")},
-		os.Getenv("EMPTY_EMOJI_GUILD"),
+		map[wordle.GuessResult]string{
+			wordle.GuessResultNotGuessed:    os.Getenv("NOT_GUESSED_EMOJI_GUILD"),
+			wordle.GuessResultWrong:         os.Getenv("WRONG_EMOJI_GUILD"),
+			wordle.GuessResultWrongPosition: os.Getenv("WRONG_POSITION_EMOJI_GUILD"),
+			wordle.GuessResultCorrect:       os.Getenv("CORRECT_EMOJI_GUILD"),
+		},
+		os.Getenv("MISC_EMOJI_GUILD"),
 	)
 	if err != nil {
 		log.Fatal().Err(err).Msg("Failed to start bot")

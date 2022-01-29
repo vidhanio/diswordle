@@ -51,6 +51,11 @@ var guildWordleApplicationCommands = []*discordgo.ApplicationCommand{
 				Description: "Show the cancel votes for the current guild wordle",
 				Type:        discordgo.ApplicationCommandOptionSubCommand,
 			},
+			{
+				Name:        "letters",
+				Description: "Show the letters used in the current guild wordle",
+				Type:        discordgo.ApplicationCommandOptionSubCommand,
+			},
 		},
 	},
 }
@@ -71,6 +76,8 @@ func (wb *WordleBot) handleGuildWordle(s *discordgo.Session, i *discordgo.Intera
 				wb.handleGuildWordleShow(s, i)
 			case "votes":
 				wb.handleGuildWordleVotes(s, i)
+			case "letters":
+				wb.handleGuildWordleLetters(s, i)
 			}
 		}
 	case discordgo.InteractionMessageComponent:
@@ -222,4 +229,15 @@ func (wb *WordleBot) handleGuildWordleVotes(s *discordgo.Session, i *discordgo.I
 	}
 
 	respond(s, i, ephemeralify(embedResponse(wg.voteEmbed())))
+}
+
+func (wb *WordleBot) handleGuildWordleLetters(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	wg, ok := wb.getWordleGame(i)
+	if !ok {
+		warningRespond(s, i, "No wordle in progress. Use `/start` to start a new game.")
+
+		return
+	}
+
+	respond(s, i, ephemeralify(embedResponse(wg.lettersEmbed())))
 }

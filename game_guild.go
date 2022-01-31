@@ -22,14 +22,14 @@ type guildWordleGame struct {
 	cancelVotes map[string]bool
 }
 
-func (wb *WordleBot) getGuildWordleGame(i *discordgo.InteractionCreate) (*guildWordleGame, bool) {
+func (wb *WordleBot) guildWordleGame(i *discordgo.InteractionCreate) (*guildWordleGame, bool) {
 	wg, ok := wb.guildWordles[i.GuildID]
 
 	return wg, ok
 }
 
 func (wb *WordleBot) newGuildWordleGame(i *discordgo.InteractionCreate, wordLength int) (*guildWordleGame, error) {
-	wg, ok := wb.getGuildWordleGame(i)
+	wg, ok := wb.guildWordleGame(i)
 	if ok {
 		return wg, nil
 	}

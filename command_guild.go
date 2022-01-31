@@ -88,7 +88,7 @@ func (wb *WordleBot) handleGuildWordle(s *discordgo.Session, i *discordgo.Intera
 }
 
 func (wb *WordleBot) handleGuildWordleStart(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	_, ok := wb.getGuildWordleGame(i)
+	_, ok := wb.guildWordleGame(i)
 	if ok {
 		warningRespond(s, i, "A guild wordle is already in progress. Use `/guild cancel` to vote to cancel it.")
 
@@ -124,7 +124,7 @@ func (wb *WordleBot) handleGuildWordleStart(s *discordgo.Session, i *discordgo.I
 }
 
 func (wb *WordleBot) handleGuildWordleGuess(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	wg, ok := wb.getGuildWordleGame(i)
+	wg, ok := wb.guildWordleGame(i)
 	if !ok {
 		warningRespond(s, i, "No guild wordle in progress. Use `/guild start` to start a new game.")
 
@@ -160,7 +160,7 @@ func (wb *WordleBot) handleGuildWordleGuess(s *discordgo.Session, i *discordgo.I
 }
 
 func (wb *WordleBot) handleGuildWordleCancel(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	wg, ok := wb.getGuildWordleGame(i)
+	wg, ok := wb.guildWordleGame(i)
 	if !ok {
 		warningRespond(s, i, "No guild wordle in progress. Use `/guild start` to start a new game.")
 
@@ -191,7 +191,7 @@ func (wb *WordleBot) handleGuildWordleCancel(s *discordgo.Session, i *discordgo.
 }
 
 func (wb *WordleBot) handleGuildWordleShow(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	wg, ok := wb.getGuildWordleGame(i)
+	wg, ok := wb.guildWordleGame(i)
 	if !ok {
 		warningRespond(s, i, "No wordle in progress. Use `/guild start` to start a new game.")
 
@@ -221,7 +221,7 @@ func (wb *WordleBot) handleGuildWordleShow(s *discordgo.Session, i *discordgo.In
 }
 
 func (wb *WordleBot) handleGuildWordleVotes(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	wg, ok := wb.getGuildWordleGame(i)
+	wg, ok := wb.guildWordleGame(i)
 	if !ok {
 		warningRespond(s, i, "No guild wordle in progress. Use `/guild start` to start a new game.")
 
@@ -232,7 +232,7 @@ func (wb *WordleBot) handleGuildWordleVotes(s *discordgo.Session, i *discordgo.I
 }
 
 func (wb *WordleBot) handleGuildWordleLetters(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	wg, ok := wb.getWordleGame(i)
+	wg, ok := wb.guildWordleGame(i)
 	if !ok {
 		warningRespond(s, i, "No wordle in progress. Use `/start` to start a new game.")
 

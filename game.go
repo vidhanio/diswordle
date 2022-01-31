@@ -18,7 +18,7 @@ type wordleGame struct {
 	emptyEmoji *discordgo.Emoji
 }
 
-func (wb *WordleBot) getWordleGame(i *discordgo.InteractionCreate) (*wordleGame, bool) {
+func (wb *WordleBot) wordleGame(i *discordgo.InteractionCreate) (*wordleGame, bool) {
 	g, ok := wb.wordles[i.GuildID]
 	if !ok {
 		g = make(map[string]*wordleGame)
@@ -31,7 +31,7 @@ func (wb *WordleBot) getWordleGame(i *discordgo.InteractionCreate) (*wordleGame,
 }
 
 func (wb *WordleBot) newWordleGame(i *discordgo.InteractionCreate, wordLength int) (*wordleGame, error) {
-	wg, ok := wb.getWordleGame(i)
+	wg, ok := wb.wordleGame(i)
 	if ok {
 		return wg, nil
 	}

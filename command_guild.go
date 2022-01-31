@@ -18,7 +18,7 @@ var guildWordleApplicationCommands = []*discordgo.ApplicationCommand{
 				Options: []*discordgo.ApplicationCommandOption{
 					{
 						Name:        "word_length",
-						Description: "The length of the word to be used in the guild wordle",
+						Description: "The length of the word to be used",
 						Type:        discordgo.ApplicationCommandOptionInteger,
 					},
 				},
